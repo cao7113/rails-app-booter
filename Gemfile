@@ -5,5 +5,4 @@ source "https://rubygems.org"
 git_source(:github) {|repo_name| "https://github.com/#{repo_name}" }
 
 gem "byebug"
-gem "rails" #, '~> 6.0'
-gem 'rspec-rails' #, '~> 3.8'
+gem "rails"

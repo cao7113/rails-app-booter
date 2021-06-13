@@ -1,4 +1,4 @@
-# RailsApp Booter
+# Rails App Booter
 
 Bootstrap new rails applications with app-templating help
 
@@ -6,7 +6,7 @@ Bootstrap new rails applications with app-templating help
 
 https://guides.rubyonrails.org/rails_application_templates.html
 
-```
+```bash
 # create project using template
 $ rails new blog -m ~/template.rb
 $ rails new blog -m http://example.com/template.rb

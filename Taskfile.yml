@@ -1,57 +1,129 @@
 # https://taskfile.dev
 version: '3'
 vars:
-  app_name: tmp-demo
-  bare_demo: tmp-bare-demo
+  app_name: hirails
+  bare_demo: tmp-demo
+  web: "http://localhost:3000/admin"
 
 tasks:
   test-var:
+    desc: test vars
     cmds:
-    # task a-task-name app_name=other-name to replace default app name
+    ## task a-task-name app_name=other-name to replace default app name
     - echo app-name={{.app_name}}
 
+  web:
+    desc: open web
+    cmds:
+      - open {{.web}}
+  
   run:
+    desc: run app
     cmds:
     - cd {{.app_name}} && rails s
-
-  # rails _<version>_ new a-app1 ...
-  rails-bare-new:
+  sh:
+    desc: run console
     cmds:
-    - rm -fr {{.bare_demo}}
-    - rails _6.0.0_ new ${{.bare_demo}} \
-      --skip-test \
-      --skip-spring \
-      --skip-webpack-install
+    - cd {{.app_name}} && rails console
 
-  db-setup:
+  reset-app:
     cmds:
-      - cd {{.app_name}} && rails db:setup
-  db-reset:
-    cmds:
-      - cd {{.app_name}} && rails db:reset || true
+    - task: clear-app
+    - task: new-app
 
-  init-trestle-admin:
-    desc: use trestle-admin
-    cmds:
-      - cd {{.app_name}} && rails app:template LOCATION=../template/trestle-admin.rb
-
-  reset-project:
-    cmds:
-    - task: db-reset
-    - rm -fr {{.app_name}}
-    - task: init-project
-
-  init-project:
-    desc: init rails project
+  new-app:
+    desc: new rails web application
     status:
       - test -d {{.app_name}}
     deps:
       - install-nodejs
       - fix-gem-mysql2-native-build
     cmds:
-      - rails new {{.app_name}} -d mysql --skip-test --skip-spring --skip-listen
+      - task: do-new-app
       - task: db-setup
+      - task: init-settinglogic
+      - task: init-rspec
+      - task: init-kaminari
       - task: init-trestle-admin
+      - task: init-testing-note
+      - task: app-files
+
+  do-new-app:
+    cmds:
+      - |
+        rails new {{.app_name}} -d mysql \
+          -m $(pwd)/starter/starter.rb \
+          --skip-test --skip-spring 
+          #--skip-bundle --skip-webpack-install
+
+  app-files:
+    desc: update base files
+    cmds:
+      - cd {{.app_name}} && rails app:template LOCATION=../starter/files.rb
+
+  init-settinglogic:
+    desc: init settinglogic
+    cmds:
+      - cd {{.app_name}} && rails app:template LOCATION=../template/settinglogic.rb
+  init-rspec:
+    desc: init rspec-rails
+    cmds:
+      - cd {{.app_name}} && rails app:template LOCATION=../template/rspec.rb
+  init-kaminari:
+    desc: init kaminari paginator
+    cmds:
+      - cd {{.app_name}} && rails app:template LOCATION=../template/kaminari.rb
+  init-trestle-admin:
+    desc: init trestle-admin
+    cmds:
+      - cd {{.app_name}} && rails app:template LOCATION=../template/trestle-admin.rb
+  init-testing-note:
+    desc: init testing note
+    cmds:
+      - cd {{.app_name}} && rails app:template LOCATION=../template/note.rb
+
+  install-webpacker:
+    desc: install webpacker
+    cmds:
+      - cd {{.app_name}} && rails webpacker:install
+  
+  db-setup:
+    desc: setup db
+    cmds:
+      - cd {{.app_name}} && rails db:setup || true
+  db-reset:
+    desc: reset db
+    cmds:
+      - cd {{.app_name}} && rails db:drop || true
+
+  clear-app:
+    cmds:
+      - task: db-reset
+      - rm -fr {{.app_name}}
+
+  # rails _<version>_ new a-app1 ...
+  rails-bare-new:
+    cmds:
+    - rm -fr {{.bare_demo}}
+    - |
+      rails _6.0.0_ new ${{.bare_demo}} \
+        --skip-test \
+        --skip-spring \
+        --skip-bundle \
+        --skip-webpack-install
+
+  new-api:
+    desc: new rails api application
+    deps:
+      - install-nodejs
+      - fix-gem-mysql2-native-build
+    cmds:
+      - rails new {{.app_name}} -d mysql --skip-test --skip-spring --api
+
+  setup:
+    desc: setup env
+    cmds:
+      - asdf install
 
   fix-gem-mysql2-native-build:
     # https://github.com/brianmario/mysql2
@@ -62,15 +134,12 @@ tasks:
       #- brew install openssl
       - bundle config --global build.mysql2 --with-opt-dir="$(brew --prefix openssl)"
 
-  setup:
-    cmds:
-      - asdf install
-
   install-nodejs:
-    desc: nodejs install
+    desc: install nodejs
     status:
       - which node
     cmds:
-      - asdf plugin add nodejs
-      - asdf add nodejs 15.14.0
-      - asdf local nodejs 15.14.0
+      - asdf plugin add nodejs || true
+      # versions https://github.com/nodejs/Release
+      - asdf add nodejs lts
+      - asdf local nodejs lts

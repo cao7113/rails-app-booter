@@ -20,7 +20,7 @@ Bundler.with_unbundled_env do
   rakefile "#{model_name.underscore}.rake" do
     <<-Ruby.strip_heredoc
       namespace :admin do
-        task user: :environment do
+        task init_user: :environment do
           email = "admin@local.host"
           attrs = {
             password: "password", 
@@ -35,5 +35,5 @@ Bundler.with_unbundled_env do
   end
 
   # run rake task
-  rails_command "admin:user"
+  rails_command "admin:init_user"
 end

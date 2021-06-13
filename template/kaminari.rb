@@ -1,8 +1,9 @@
 # https://github.com/kaminari/kaminari
+
 require 'bundler'
 gem 'kaminari'
 
-Bundler.with_clean_env do
+Bundler.with_unbundled_env do
   run "bundle install"
   generate 'kaminari:config'
 

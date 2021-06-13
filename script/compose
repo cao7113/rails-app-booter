@@ -1,0 +1,95 @@
+#!/usr/bin/env rundklet
+add_note <<~Note
+  run rails app on docker
+  https://docs.docker.com/compose/rails/
+  https://github.com/ledermann/docker-rails
+Note
+
+register_net
+register_approot script_path.join('..')
+register_default_env 'development'
+
+register_docker_image "docklet/#{appname}-on-compose:#{env}"
+register_build_root approot
+register_build_net netname
+register :web_domain, "#{appname}.#{env}.lh,#{env}.#{appname}.lh"
+register_app_tag :rails_web
+
+  #LABEL maintainer=dailyops app=#{appname} env=#{env}
+write_dockerfile <<~Desc
+  FROM ruby:2.5-alpine
+  LABEL maintainer=dailyops
+  ARG TIMEZONE=Asia/Shanghai
+  RUN apk update && \
+      apk add --no-cache tzdata build-base nodejs postgresql-dev git && \
+      cp /usr/share/zoneinfo/${TIMEZONE} /etc/localtime && \
+      echo "Timezone set to: $TIMEZONE" && \
+      bundle config mirror.https://rubygems.org http://gemstash:9292 && \
+      echo "${TIMEZONE}" > /etc/timezone
+  CMD ["sh", "start.sh"]
+  WORKDIR /apprun
+  COPY Gemfile ./
+  ENV BUNDLE_GEMFILE=/apprun/Gemfile
+  <% case env %>
+  <% when 'development' %>
+  RUN bundle install -j4 --retry 3 --verbose
+  WORKDIR /src
+  <% when 'production' %>
+  RUN bundle install --without development test -j4 --retry 3 --verbose
+  WORKDIR /src
+  COPY . .
+  RUN SECRET_KEY_BASE=xxx RAILS_ENV=production bundle exec rake assets:precompile
+  <% end %>
+Desc
+
+# in docker-compose.yml style
+write_specfile <<~Desc
+  version: '2'
+  services:
+    web:
+      image: #{docker_image}
+      <%if env == 'development' %>
+      volumes:
+        - .:/src
+      <%else%>
+      restart: always
+      <%end%>
+      ports:
+        - 3000
+      environment:
+        - VIRTUAL_HOST=<%=fetch(:web_domain)%>
+        - RAILS_ENV=<%=env %>
+        # https://guides.rubyonrails.org/configuring.html#configuring-a-database
+        - DATABASE_URL=postgres://appuser:password@pg-default/<%=appname%>_<%=env%>
+        <%if env == 'production' %>
+        - RAILS_MASTER_KEY=<%=File.read('config/master.key')%>
+        - RAILS_SERVE_STATIC_FILES=1
+        - RAILS_LOG_TO_STDOUT=1
+        <%end%>
+    #job:
+      #image: #{docker_image}
+      #restart: always
+      #container_name: job
+      ##env_file:
+        ##- 'vars.env'k
+      #environment:
+        #- RAILS_MASTER_KEY=fc2dd1d1a901927bc3141161ecaab237
+        #- RUN_AS_APP=sidekiq
+    
+  networks:
+    default:
+      external:
+        name: #{netname}
+Desc
+
+task :main do
+  system <<~Desc
+    #{compose_cmd} up -d
+  Desc
+end
+
+before_task :clean do
+  system <<~Desc
+    #{compose_cmd} down
+  Desc
+end

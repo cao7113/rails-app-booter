@@ -1,0 +1,59 @@
+# https://taskfile.dev
+version: '3'
+tasks:
+  run:
+    desc: run rails server
+    cmds:
+      - rails s --log-to-stdout
+
+  sh:
+    desc: rails console
+    cmds:
+      - rails console
+
+  psup:
+    desc: push to github
+    cmds:
+      #- gh repo create || true
+      - git remote add origin git@github.com:cao7113/hirails.git || true
+      - git push --set-upstream origin master --force 
+
+  prod:
+    desc: run in production mode
+    cmds:
+      - rails s --log-to-stdout # task: run
+    env:
+      RAILS_ENV: production
+      RAILS_SERVE_STATIC_FILES: yes
+      DATABASE_URL: "mysql2://root:@localhost"
+
+  prod-setup:
+    desc: setup production env
+    cmds:
+      - task: prod-precompile
+      - rails db:setup || true
+      - task: prod-init-user
+    env:
+      RAILS_ENV: production
+      DATABASE_URL: "mysql2://root:@localhost"
+  
+  prod-precompile:
+    desc: precompile assets
+    cmds:
+      - rails assets:precompile 
+    env:
+      RAILS_ENV: production
+
+  prod-sql:
+    cmds:
+      - rails dbconsole
+    env:
+      RAILS_ENV: production
+      DATABASE_URL: "mysql2://root:@localhost"
+    
+  prod-init-user:
+    cmds:
+      - rails admin:init_user
+    env:
+      RAILS_ENV: production
+      DATABASE_URL: "mysql2://root:@localhost"

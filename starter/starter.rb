@@ -6,7 +6,7 @@ def source_paths
   [__dir__]
 end
 
-require 'byebug'
+# require 'byebug'
 # byebug
 template "app/README.md", "README.md", force: true
 

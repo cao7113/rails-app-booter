@@ -1,0 +1,12 @@
+.git
+tmp
+log
+local
+
+.dockerignore
+.gitignore
+.ruby-version
+.byebug_history
+*.swp
+Gemfile.lock
+config/master.key
