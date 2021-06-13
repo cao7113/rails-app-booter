@@ -1,0 +1,11 @@
+defaults: &defaults
+  name: <%=app_name%>
+
+development:
+  <<: *defaults
+
+test:
+  <<: *defaults
+
+production:
+  <<: *defaults

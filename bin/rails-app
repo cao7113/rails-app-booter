@@ -1,0 +1,112 @@
+#!/usr/bin/env ruby
+require 'bundler/inline'
+gemfile do
+  source ENV['GEM_SOURCE'] || 'https://rubygems.org'
+  gem "byebug"
+  gem "thor"
+end
+require 'byebug'
+require 'thor'
+
+class RailsAppCLI < Thor
+  class_option :dry, type: :boolean, desc: 'dryrun'
+
+  desc 'test', 'test thor'
+  def test
+    puts options[:dry]
+  end
+
+  desc 'create APPNAME', 'create a new rails app'
+  option :rails_new_opts, desc: 'other new options'
+  def create(appname = "tmp-demo")
+    run <<-Script
+      rails _6.0.0_ new #{appname} \
+        --skip-test \
+        --skip-spring \
+        --skip-webpack-install \
+        --template #{root_path}/starter/rails6-app.rb
+    Script
+
+    run "cd #{appname}"
+    parts = %w(
+      settinglogic
+      rspec
+      trestle-admin
+      kaminari
+      blog
+    )
+
+    parts.each do |p|
+      run "echo == apply part: #{p}"
+      run %Q(rails app:template LOCATION=#{root_path.join('parts', p)}.rb)
+    end
+
+    run_all
+  end
+  
+  desc 'createapi APPNAME', 'create a new rails api app'
+  option :rails_new_opts, desc: 'other new options'
+  def createapi(appname = "tmp-demo")
+    run <<-Script
+      rails new #{appname} \
+        --skip-test \
+        --skip-spring \
+        --api \
+        --template #{root_path}/starter/rails6-app.rb
+    Script
+
+    run "cd #{appname}"
+    parts = %w(
+      settinglogic
+      rspec
+      kaminari
+    )
+
+    parts.each do |p|
+      run "echo == apply part: #{p}"
+      run %Q(rails app:template LOCATION=#{root_path.join('parts', p)}.rb)
+    end
+
+    run_all
+  end
+  
+  desc 'which', 'this command path'
+  def which
+    puts Pathname(__FILE__)
+  end
+
+  desc 'vi', 'vi command'
+  def vi
+    exec "vi + #{__FILE__}"
+  end
+
+  no_tasks do
+    def bin_path
+      Pathname(__dir__)
+    end
+
+    def root_path
+      bin_path.parent
+    end
+
+    def dry?
+      options[:dry]
+    end
+
+    def run cmd = nil
+      (@cmds ||=[]) << cmd
+    end
+    
+    def run_all
+      cmds = @cmds.join("\n")
+      if dry?
+        puts cmds
+      else
+        system cmds
+      end
+      @cmds = [] # reset
+    end
+  end
+end
+
+RailsAppCLI.start

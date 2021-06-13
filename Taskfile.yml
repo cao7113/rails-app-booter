@@ -1,0 +1,76 @@
+# https://taskfile.dev
+version: '3'
+vars:
+  app_name: tmp-demo
+  bare_demo: tmp-bare-demo
+
+tasks:
+  test-var:
+    cmds:
+    # task a-task-name app_name=other-name to replace default app name
+    - echo app-name={{.app_name}}
+
+  run:
+    cmds:
+    - cd {{.app_name}} && rails s
+
+  # rails _<version>_ new a-app1 ...
+  rails-bare-new:
+    cmds:
+    - rm -fr {{.bare_demo}}
+    - rails _6.0.0_ new ${{.bare_demo}} \
+      --skip-test \
+      --skip-spring \
+      --skip-webpack-install
+
+  db-setup:
+    cmds:
+      - cd {{.app_name}} && rails db:setup
+  db-reset:
+    cmds:
+      - cd {{.app_name}} && rails db:reset || true
+
+  init-trestle-admin:
+    desc: use trestle-admin
+    cmds:
+      - cd {{.app_name}} && rails app:template LOCATION=../template/trestle-admin.rb
+
+  reset-project:
+    cmds:
+    - task: db-reset
+    - rm -fr {{.app_name}}
+    - task: init-project
+
+  init-project:
+    desc: init rails project
+    status:
+      - test -d {{.app_name}}
+    deps:
+      - install-nodejs
+      - fix-gem-mysql2-native-build
+    cmds:
+      - rails new {{.app_name}} -d mysql --skip-test --skip-spring --skip-listen
+      - task: db-setup
+      - task: init-trestle-admin
+
+  fix-gem-mysql2-native-build:
+    # https://github.com/brianmario/mysql2
+    desc: fix mysql2 gem build error as https://github.com/brianmario/mysql2/issues/1005#issuecomment-433219580
+    status:
+      - test -n "$(bundle config get build.mysql2 --parseable)"
+    cmds:
+      #- brew install openssl
+      - bundle config --global build.mysql2 --with-opt-dir="$(brew --prefix openssl)"
+
+  setup:
+    cmds:
+      - asdf install
+
+  install-nodejs:
+    desc: nodejs install
+    status:
+      - which node
+    cmds:
+      - asdf plugin add nodejs
+      - asdf add nodejs 15.14.0
+      - asdf local nodejs 15.14.0
