@@ -46,20 +46,21 @@ tasks:
       - task: init-kaminari
       - task: init-trestle-admin
       - task: init-testing-note
-      - task: app-files
+      - task: base-files
 
   do-new-app:
     cmds:
       - |
         rails new {{.app_name}} -d mysql \
-          -m $(pwd)/starter/starter.rb \
+          -m $(pwd)/base.rb \
+          --skip-action-cable \
           --skip-test --skip-spring 
           #--skip-bundle --skip-webpack-install
 
-  app-files:
+  base-files:
     desc: update base files
     cmds:
-      - cd {{.app_name}} && rails app:template LOCATION=../starter/files.rb
+      - cd {{.app_name}} && rails app:template LOCATION=../base/files.rb
 
   init-settinglogic:
     desc: init settinglogic

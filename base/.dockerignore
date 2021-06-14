@@ -1,12 +1,15 @@
 .git
 tmp
 log
-local
+local*
+*.swp
 
 .dockerignore
+Dockerfile
+docker-compose.yml
+
 .gitignore
-.ruby-version
 .byebug_history
-*.swp
-Gemfile.lock
 config/master.key
+
+node_modules

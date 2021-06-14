@@ -23,5 +23,4 @@ The application template is evaluated in the context of a Rails::Generators::App
 ## Resources 
 
 https://guides.rubyonrails.org/generators.html
-
 https://github.com/nickjj/docker-rails-example

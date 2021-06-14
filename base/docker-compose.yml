@@ -1,0 +1,18 @@
+---
+# docker compose build
+# docker compose run --rm web rails db:setup admin:init_user
+# docker compose up
+version: "3"
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: prod
+    environment:
+      DATABASE_URL: "mysql2://root:@host.docker.internal/hirails_prod_docker"
+    ports:
+      - target: 3000
+        published: 3000
+        protocol: tcp
+        mode: host

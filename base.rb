@@ -8,7 +8,7 @@ end
 
 # require 'byebug'
 # byebug
-template "app/README.md", "README.md", force: true
+template "base/README.md", "README.md", force: true
 
 after_bundle do
   # git :init

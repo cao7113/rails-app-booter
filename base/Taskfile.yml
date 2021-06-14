@@ -10,6 +10,10 @@ tasks:
     desc: rails console
     cmds:
       - rails console
+  tsh:
+    desc: rails test console
+    cmds:
+      - rails console -e test
 
   psup:
     desc: push to github
@@ -57,3 +61,23 @@ tasks:
     env:
       RAILS_ENV: production
       DATABASE_URL: "mysql2://root:@localhost"
+
+  dk-build:
+    desc: docker build
+    cmds:
+      - docker build -t <%=original_app_name%>:test .
+
+  dcom-init:
+    desc: init docker compose instance
+    cmds:
+      - docker compose run --rm web rails db:setup admin:init_user
+
+  dcom:
+    cmds:
+      - docker compose up --build -V
+
+  test-db-mig:
+    cmds:
+      - rails db:migrate
+    env:
+      RAILS_ENV: test

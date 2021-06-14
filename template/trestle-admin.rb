@@ -8,11 +8,12 @@ gem 'trestle-auth'
 Bundler.with_unbundled_env do
   run "bundle install"
   generate "trestle:install"
-  # generate "trestle:resource Baby"
+  # generate "trestle:resource Trial"
 
   model_name = "AdminUser" # default model: Administrator
   generate "trestle:auth:install #{model_name}"
   rails_command "db:migrate"
+  route "root to: 'trestle/dashboard#index'"
 
   git add: '.'
   git commit: "-m 'add trestle admin'"
@@ -28,7 +29,7 @@ Bundler.with_unbundled_env do
             last_name: "User"
           }
           #{model_name}.create_with(attrs).find_or_create_by(email: email)
-          puts "==created user: \#{email}"
+          puts "==created init admin user: \#{email}"
         end
       end
     Ruby
