@@ -1,11 +1,18 @@
 # https://taskfile.dev
 version: '3'
+vars:
+  web: "http://localhost:3000"
 tasks:
   run:
     desc: run rails server
     cmds:
       - rails s --log-to-stdout
 
+  web:
+    desc: open web
+    cmds:
+      - open {{.web}}
+  
   sh:
     desc: rails console
     cmds:

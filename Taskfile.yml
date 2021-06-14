@@ -3,7 +3,6 @@ version: '3'
 vars:
   app_name: hirails
   bare_demo: tmp-demo
-  web: "http://localhost:3000/admin"
 
 tasks:
   test-var:
@@ -15,7 +14,7 @@ tasks:
   web:
     desc: open web
     cmds:
-      - open {{.web}}
+      - cd {{.app_name}} && task web
   
   run:
     desc: run app
