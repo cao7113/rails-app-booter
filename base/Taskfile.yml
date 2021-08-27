@@ -73,6 +73,10 @@ tasks:
     desc: docker build
     cmds:
       - docker build -t <%=original_app_name%>:test .
+  dk-run:
+    desc: run in simple docker container
+    cmds:
+      - docker run --rm -e DATABASE_URL="mysql2://root:@host.docker.internal/hirails_prod_docker" hirails:test
 
   dcom-init:
     desc: init docker compose instance
